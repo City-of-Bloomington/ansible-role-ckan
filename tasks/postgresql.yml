@@ -1,0 +1,27 @@
+---
+- name: Create CKAN database user
+  become_user: postgres
+  postgresql_user: name={{ ckan_db.username }} password={{ ckan_db.password }}
+  tags: postgresql
+
+- name: Create CKAN database
+  become_user: postgres
+  postgresql_db: name={{ ckan_db.dbname }} owner={{ ckan_db.username }}
+  tags: postgresql
+
+- name: Check if CKAN database has already been initialized
+  become_user: postgres
+  command: psql -h localhost -U {{ ckan_db.username }} -d {{ ckan_db.dbname }} -c '\d'
+  environment:
+    PGPASSWORD: "{{ ckan_db.password }}"
+  register: ckan_tables_result
+
+- name: Update database connection config
+  lineinfile:
+    dest: "{{ ckan_path }}/etc/production.ini"
+    regexp: "sqlalchemy.url"
+    line: "sqlalchemy.url = postgresql://{{ ckan_db.username }}:{{ ckan_db.password }}@localhost/{{ ckan_db.dbname }}"
+
+- name: Initialize ckan database tables
+  command: "{{ ckan_path }}/bin/paster --plugin=ckan db init -c {{ ckan_path }}/etc/production.ini"
+  when: ckan_tables_result.stdout_lines|length <= 1

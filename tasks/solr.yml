@@ -1,0 +1,23 @@
+---
+- name: Check for Solr core
+  become_user: solr
+  command: "{{ solr_install_dir }}/solr/bin/solr create -c ckan -d basic_configs
+            creates={{ solr_home }}/data/ckan/conf/solrconfig.xml"
+  tags: solr
+
+- name: Make sure solr is set to use Schema.xml
+  become_user: solr
+  copy:
+    src: solrconfig.xml
+    dest: "{{ solr_home }}/data/ckan/conf/solrconfig.xml"
+  tags: solr
+
+- name: Install CKAN schema.xml
+  become_user: solr
+  copy:
+    remote_src: True
+    src: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
+    dest: "{{ solr_home }}/data/ckan/conf/schema.xml"
+    force: no
+  notify: restart solr
+  tags: solr

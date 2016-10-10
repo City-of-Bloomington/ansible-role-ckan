@@ -1,0 +1,13 @@
+---
+ckan_path: /srv/sites/ckan
+ckan_branch: release-v2.5.3
+ckan_user: "{{ ansible_user|default(lookup('env', 'USER'), True) }}"
+
+ckan_db:
+  username: "ckan"
+  password: "{{ vault_ckan_db.password }}"
+  dbname: "ckan"
+
+ckan_site_hostname: "{{ ansible_nodename }}"
+ckan_site_uri: "{{ ckan_site_hostname }}"
+ckan_site_url: "http://{{ ckan_site_uri }}"
