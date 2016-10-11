@@ -21,3 +21,9 @@
     force: no
   notify: restart solr
   tags: solr
+
+- name: Point CKAN to Solr
+  lineinfile:
+    dest: "{{ ckan_path }}/etc/production.ini"
+    regexp: 'solr_url'
+    line: 'solr_url = http://127.0.0.1:8983/solr'

@@ -11,3 +11,8 @@ ckan_db:
 ckan_site_hostname: "{{ ansible_nodename }}"
 ckan_site_uri: "{{ ckan_site_hostname }}"
 ckan_site_url: "http://{{ ckan_site_uri }}"
+
+ckan_datastore:
+  username: "ckanro"
+  password: "{{ vault_ckan_datastore.password }}"
+  dbname: "datastore"

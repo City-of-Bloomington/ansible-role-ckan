@@ -32,6 +32,7 @@
   lineinfile: dest="{{ ckan_path }}/etc/production.ini" regexp="{{ item.regexp }}" line="{{ item.line }}"
   with_items:
     - { regexp: 'ckan.site_url',  line: 'ckan.site_url = {{ ckan_site_url }}' }
+    - { regexp: 'ckan\.auth\.create_user_via_web', line: 'ckan.auth.create_user_via_web = false' }
 
 - name: Link to who.ini
   file:
