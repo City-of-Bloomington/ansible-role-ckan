@@ -16,3 +16,4 @@ ckan_datastore:
   username: "ckanro"
   password: "{{ vault_ckan_datastore.password }}"
   dbname: "datastore"
+...
