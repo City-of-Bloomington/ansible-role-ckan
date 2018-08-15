@@ -1,30 +1,54 @@
 ---
-- name: Check for Solr core
-  become_user: solr
-  command: "{{ solr_install_dir }}/solr/bin/solr create -c ckan -d basic_configs
-            creates={{ solr_home }}/data/ckan/conf/solrconfig.xml"
-  tags: solr
+- name: "Create solr core"
+  become_user: "solr"
+  command: "{{ solr_install_dir }}/solr/bin/solr create -c ckan"
+  args:
+    creates: "{{ solr_home }}/data/ckan/conf/solrconfig.xml"
 
-- name: Make sure solr is set to use Schema.xml
-  become_user: solr
-  copy:
-    src: solrconfig.xml
-    dest: "{{ solr_home }}/data/ckan/conf/solrconfig.xml"
-  tags: solr
+- name: "Disable managed schema"
+  xml:
+    path: "{{ solr_home }}/data/ckan/conf/solrconfig.xml"
+    xpath: "/config/schemaFactory"
+    attribute: "class"
+    value: "ClassicIndexSchemaFactory"
+    state: "present"
+  notify: "solr_restart"
 
-- name: Install CKAN schema.xml
-  become_user: solr
-  copy:
-    remote_src: True
-    src: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
+- name: "Remove defaultSearchField"
+  xml:
+    path: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
+    xpath: "/schema/defaultSearchField"
+    state: "absent"
+  notify: "solr_restart"
+
+- name: "Add DF element"
+  xml:
+    path: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
+    xpath: "/schema/df"
+    value: "text"
+  notify: "solr_restart"
+
+- name: "Remove solrQueryParser:defaultOperator"
+  xml:
+    path: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
+    xpath: "/schema/solrQueryParser"
+    attribute: "defaultOperator"
+    state: "absent"
+  notify: "solr_restart"
+
+- name: "Add solrQueryParser:q.op"
+  xml:
+    path: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
+    xpath: "/schema/solrQueryParser"
+    attribute: "q.op"
+    value: "AND"
+  notify: "solr_restart"
+
+- name: "Install solr schema"
+  become_user: "solr"
+  file:
+    src:  "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
     dest: "{{ solr_home }}/data/ckan/conf/schema.xml"
-    force: no
-  notify: restart solr
-  tags: solr
-
-- name: Point CKAN to Solr
-  lineinfile:
-    dest: "{{ ckan_path }}/etc/production.ini"
-    regexp: 'solr_url'
-    line: 'solr_url = http://127.0.0.1:8983/solr'
+    state: "link"
+  notify: "solr_restart"
 ...

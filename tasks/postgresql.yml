@@ -1,48 +1,46 @@
 ---
-- name: Create CKAN database user
-  become_user: postgres
-  postgresql_user: name={{ ckan_db.username }} password={{ ckan_db.password }}
-  tags: postgresql
+- name: "Create CKAN user"
+  become: "yes"
+  become_user: "postgres"
+  postgresql_user:
+    name:     "{{ ckan_db.ckan.user }}"
+    password: "{{ ckan_db.ckan.pass }}"
+    role_attr_flags: "LOGIN"
 
-- name: Create CKAN database
-  become_user: postgres
-  postgresql_db: name={{ ckan_db.dbname }} owner={{ ckan_db.username }}
-  tags: postgresql
+- name: "Create datastore user"
+  become: "yes"
+  become_user: "postgres"
+  postgresql_user:
+    name:     "{{ ckan_db.datastore.user }}"
+    password: "{{ ckan_db.datastore.pass }}"
+    role_attr_flags: "LOGIN"
 
-- name: Update database connection config
-  lineinfile:
-    dest: "{{ ckan_path }}/etc/production.ini"
-    regexp: "sqlalchemy.url"
-    line: "sqlalchemy.url = postgresql://{{ ckan_db.username }}:{{ ckan_db.password }}@localhost/{{ ckan_db.dbname }}"
+- name: "Create CKAN database"
+  become: "yes"
+  become_user: "postgres"
+  postgresql_db:
+    name:  "{{ ckan_db.ckan.name }}"
+    owner: "{{ ckan_db.ckan.user }}"
+  register: "ckan_database"
 
-- name: Check if CKAN database has already been initialized
-  become_user: postgres
-  command: psql -h localhost -U {{ ckan_db.username }} -d {{ ckan_db.dbname }} -c '\d'
-  environment:
-    PGPASSWORD: "{{ ckan_db.password }}"
-  register: ckan_tables_result
+- name: "Create datastore database"
+  become: "yes"
+  become_user: "postgres"
+  postgresql_db:
+    name:  "{{ ckan_db.datastore.name }}"
+    owner: "{{ ckan_db.ckan.user      }}"
 
-- name: Initialize ckan database tables
-  command: "{{ ckan_path }}/bin/paster --plugin=ckan db init -c {{ ckan_path }}/etc/production.ini"
-  when: ckan_tables_result.stdout_lines|length <= 1
+- name: "Generate database permissions"
+  shell: "./bin/paster --plugin=ckan datastore set-permissions -c {{ ckan_path }}/etc/production.ini > permissions.sql"
+  args:
+    chdir:   "{{ ckan_path }}"
+  when: "ckan_database.changed"
 
-- name: Create datastore user
-  become_user: postgres
-  postgresql_user: name={{ ckan_datastore.username }} password={{ ckan_datastore.password }}
-  tags: postgresql datastore
-
-- name: Create datastore
-  become_user: postgres
-  postgresql_db: name={{ ckan_datastore.dbname }} owner={{ ckan_db.username }}
-  tags: postgresql datastore
-
-- name: Update datastore connection config
-  lineinfile: dest="{{ ckan_path }}/etc/production.ini" regexp="{{ item.regexp }}" line="{{ item.line }}"
-  with_items:
-    - { regexp: 'ckan\.datastore\.write_url', line: 'ckan.datastore.write_url = postgresql://{{ ckan_db.username }}:{{ ckan_db.password }}@localhost/{{ ckan_datastore.dbname }}' }
-    - { regexp: 'ckan\.datastore\.read_url',  line: 'ckan.datastore.read_url  = postgresql://{{ ckan_datastore.username }}:{{ ckan_datastore.password }}@localhost/{{ ckan_datastore.dbname }}' }
-
-
-# TODO: Check if datastore permissions have been set up
-#       Run paster command to set permissions if they have not
+- name: "Apply database permissions"
+  become: "yes"
+  become_user: "postgres"
+  shell: "psql -v ON_ERROR_STOP=1 < permissions.sql"
+  args:
+    chdir: "{{ ckan_path }}"
+  when: "ckan_database.changed"
 ...

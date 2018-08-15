@@ -1,0 +1,112 @@
+---
+- hosts: "ckan"
+  become: "yes"
+  roles:
+    - "City-of-Bloomington.apache"
+    - "City-of-Bloomington.postgresql"
+    - "City-of-Bloomington.solr"
+
+  tasks:
+  # Ckan does not work with python 3
+  #
+  #  - name: "Install python3 dependencies"
+  #    apt:
+  #      name: "{{ item }}"
+  #      state: "present"
+  #    with_items:
+  #      - "python3-pip"
+  #      - "python3-virtualenv"
+  #      - "python3-lxml"
+  #      - "libapache2-mod-wsgi-py3"
+  #      - "redis-server"
+  #    when: "ansible_python_version is version_compare('3', '>=')"
+
+    - name: "Install python dependencies"
+      apt:
+        name: "{{ item }}"
+        state: "present"
+      with_items:
+        - "python-pip"
+        - "python-virtualenv"
+        - "python-lxml"
+        - "libapache2-mod-wsgi"
+        - "redis-server"
+      when: "ansible_python_version is version_compare('3', '<')"
+
+    - name: "Enable apache wsgi"
+      apache2_module:
+        name: "wsgi"
+        state: "present"
+      notify: "apache_restart"
+
+    - name: "Create CKAN directory"
+      file:
+        path:  "{{ item }}"
+        state: "directory"
+        owner: "www-data"
+        group: "staff"
+      with_items:
+        - "{{ ckan_path   }}/etc"
+        - "{{ ckan_path   }}/public"
+        - "{{ ckan_data   }}"
+        - "{{ ckan_backup }}"
+
+    - name: "Install CKAN"
+      pip:
+        editable: "yes"
+        name: "git+https://github.com/ckan/ckan.git@{{ ckan_branch }}#egg=ckan"
+        virtualenv: "{{ ckan_path }}"
+        virtualenv_site_packages: "no"
+
+    - name: "Install CKAN requirements"
+      pip:
+        virtualenv:   "{{ ckan_path }}"
+        requirements: "{{ ckan_path }}/src/ckan/requirements.txt"
+
+    - name: "Create CKAN config"
+      command: "bin/paster make-config ckan etc/production.ini"
+      args:
+        chdir:   "{{ ckan_path }}"
+        creates: "etc/production.ini"
+
+    - name: "Update CKAN config"
+      ini_file:
+        path: "{{ ckan_path }}/etc/production.ini"
+        section: "app:main"
+        option: "{{ item.key   }}"
+        value:  "{{ item.value }}"
+      with_items:
+        - { key: "sqlalchemy.url",                value: "postgresql://{{ ckan_db.ckan.user }}:{{ ckan_db.ckan.pass }}@{{ ckan_db.ckan.host }}/{{ ckan_db.ckan.name }}" }
+        - { key: "ckan.site_url",                   value: "{{ ckan_site_url }}" }
+        - { key: "ckan.cors.origin_allow_all",    value: "true"                }
+        - { key: "ckan.auth.create_user_via_web", value: "false"               }
+        - { key: 'ckan.datastore.write_url', value: "postgresql://{{ ckan_db.ckan.user      }}:{{ ckan_db.ckan.pass      }}@{{ ckan_db.ckan.host      }}/{{ ckan_db.datastore.name }}" }
+        - { key: 'ckan.datastore.read_url',  value: "postgresql://{{ ckan_db.datastore.user }}:{{ ckan_db.datastore.pass }}@{{ ckan_db.datastore.host }}/{{ ckan_db.datastore.name }}" }
+        - { key: "ckan.plugins",             value: "stats text_view image_view recline_view datastore datapusher" }
+        - { key: "ckan.datapusher.formats",  value: "csv xls xlsx tsv application/csv application/vnd.ms-excel application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+        - { key: "ckan.datapusher.url",      value: "http://127.0.0.1:8800" }
+        - { key: "solr_url",                 value: "http://127.0.0.1:8983/solr/ckan" }
+        - { key: "ckan.storage_path",        value: "{{ ckan_data }}" }
+        - { key: "ckan.redis.url",           value: "redis://localhost:6379/0" }
+
+    - name: "Link to who.ini"
+      file:
+        src:   "{{ ckan_path }}/src/ckan/who.ini"
+        dest:  "{{ ckan_path }}/etc/who.ini"
+        state: "link"
+
+    - name: "Create wsgi"
+      template:
+        src:  "ckan.wsgi"
+        dest: "{{ ckan_path }}/public/ckan.wsgi"
+      notify: "apache_restart"
+
+    - name: "Install apache conf"
+      template:
+        src: "apache.conf"
+        dest: "/etc/apache2/sites-enabled/conf.d/ckan.conf"
+      notify: "apache_restart"
+
+    - include_tasks: "tasks/postgresql.yml"
+    - include_tasks: "tasks/solr.yml"
+...

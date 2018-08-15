@@ -1,19 +1,26 @@
 ---
-ckan_path: /srv/sites/ckan
-ckan_branch: release-v2.5.3
-ckan_user: "{{ ansible_user|default(lookup('env', 'USER'), True) }}"
+ckan_branch: "ckan-2.8.0"
+ckan_path:   "/srv/sites/ckan"
+ckan_data:   "/srv/data/ckan"
+ckan_backup: "/srv/backups/ckan"
 
 ckan_db:
-  username: "ckan"
-  password: "{{ vault_ckan_db.password }}"
-  dbname: "ckan"
+  ckan:
+    host: "localhost"
+    name: "ckan"
+    user: "ckan"
+    pass: "{{ vault_ckan_db.default.pass }}"
+  datastore:
+    host: "localhost"
+    name: "datastore"
+    user: "ckanro"
+    pass: "{{ vault_ckan_db.datastore.pass }}"
 
 ckan_site_hostname: "{{ ansible_nodename }}"
-ckan_site_uri: "{{ ckan_site_hostname }}"
-ckan_site_url: "http://{{ ckan_site_uri }}"
+ckan_site_uri: "/ckan"
+ckan_site_url: "http://{{ ckan_site_hostname }}{{ ckan_site_uri }}"
 
-ckan_datastore:
-  username: "ckanro"
-  password: "{{ vault_ckan_datastore.password }}"
-  dbname: "datastore"
+solr_version: "6.2.1"
+solr_filename: "solr-{{ solr_version }}"
+solr_download_url: "http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/{{ solr_filename }}.tgz"
 ...
