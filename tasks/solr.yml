@@ -5,50 +5,19 @@
   args:
     creates: "{{ solr_home }}/data/ckan/conf/solrconfig.xml"
 
-- name: "Disable managed schema"
-  xml:
-    path: "{{ solr_home }}/data/ckan/conf/solrconfig.xml"
-    xpath: "/config/schemaFactory"
-    attribute: "class"
-    value: "ClassicIndexSchemaFactory"
-    state: "present"
+- name: "Install Solr config"
+  copy:
+    src: "solr-7/solrconfig.xml"
+    dest: "{{ solr_home }}/data/ckan/conf/solrconfig.xml"
+    owner: "solr"
+    group: "solr"
   notify: "solr_restart"
 
-- name: "Remove defaultSearchField"
-  xml:
-    path: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
-    xpath: "/schema/defaultSearchField"
-    state: "absent"
-  notify: "solr_restart"
-
-- name: "Add DF element"
-  xml:
-    path: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
-    xpath: "/schema/df"
-    value: "text"
-  notify: "solr_restart"
-
-- name: "Remove solrQueryParser:defaultOperator"
-  xml:
-    path: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
-    xpath: "/schema/solrQueryParser"
-    attribute: "defaultOperator"
-    state: "absent"
-  notify: "solr_restart"
-
-- name: "Add solrQueryParser:q.op"
-  xml:
-    path: "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
-    xpath: "/schema/solrQueryParser"
-    attribute: "q.op"
-    value: "AND"
-  notify: "solr_restart"
-
-- name: "Install solr schema"
-  become_user: "solr"
-  file:
-    src:  "{{ ckan_path }}/src/ckan/ckan/config/solr/schema.xml"
+- name: "Install Solr schema"
+  copy:
+    src: "solr-7/schema.xml"
     dest: "{{ solr_home }}/data/ckan/conf/schema.xml"
-    state: "link"
+    owner: "solr"
+    group: "solr"
   notify: "solr_restart"
 ...
