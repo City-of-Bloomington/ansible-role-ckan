@@ -17,7 +17,7 @@ ckan_db:
     pass: "{{ vault_ckan_db.datastore.pass }}"
 
 ckan_site_hostname: "{{ ansible_nodename }}"
-ckan_site_uri: "/ckan"
+ckan_site_uri: "/"
 ckan_site_url: "http://{{ ckan_site_hostname }}{{ ckan_site_uri }}"
 
 solr_version: "6.2.1"

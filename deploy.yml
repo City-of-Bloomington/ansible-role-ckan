@@ -125,16 +125,16 @@
       args:
         warn: "no"
       with_items:
-        - "{{ ckan_path    }}"
-        - "{{ ckan_data    }}"
-        - "{{ ckan_backups }}"
+        - "{{ ckan_path   }}"
+        - "{{ ckan_data   }}"
+        - "{{ ckan_backup }}"
 
     - name: "Update directory permission"
       command: "chmod -R u=rwX,g=rwX,o=rX {{ item }}"
       args:
         warn: "no"
       with_items:
-        - "{{ ckan_path    }}"
-        - "{{ ckan_data    }}"
-        - "{{ ckan_backups }}"
+        - "{{ ckan_path   }}"
+        - "{{ ckan_data   }}"
+        - "{{ ckan_backup }}"
 ...
