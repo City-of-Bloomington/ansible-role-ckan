@@ -1,0 +1,31 @@
+---
+- name: "Install datapusher"
+  pip:
+    editable: "yes"
+    name: "git+https://github.com/ckan/datapusher.git@{{ ckan_datapusher.version }}#egg=datapusher"
+    virtualenv: "{{ ckan_datapusher.path }}"
+    virtualenv_site_packages: "no"
+
+- name: "Install datapusher requirements"
+  pip:
+    virtualenv:   "{{ ckan_datapusher.path }}"
+    requirements: "{{ ckan_datapusher.path }}/src/datapusher/requirements.txt"
+
+- name: "Create wsgi"
+  template:
+    src:  "datapusher.wsgi"
+    dest: "{{ ckan_datapusher.path }}/public/datapusher.wsgi"
+  notify: "apache_restart"
+
+- name: "Install apache conf"
+  template:
+    src: "datapusher.conf"
+    dest: "/etc/apache2/sites-available/datapusher.conf"
+  notify: "apache_restart"
+
+- name: "Activate datapusher vhost"
+  command: "a2ensite datapusher"
+  args:
+    creates: "/etc/apache2/sites-enabled/datapusher.conf"
+  notify: "apache_restart"
+...

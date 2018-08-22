@@ -39,7 +39,7 @@
         state: "present"
       notify: "apache_restart"
 
-    - name: "Create CKAN directory"
+    - name: "Create directories"
       file:
         path:  "{{ item }}"
         state: "directory"
@@ -50,6 +50,8 @@
         - "{{ ckan_path   }}/public"
         - "{{ ckan_data   }}"
         - "{{ ckan_backup }}"
+        - "{{ ckan_datapusher.path }}/src"
+        - "{{ ckan_datapusher.path }}/public"
 
     - name: "Install CKAN"
       pip:
@@ -113,12 +115,13 @@
 
     - name: "Install apache conf"
       template:
-        src: "apache.conf"
+        src: "ckan.conf"
         dest: "/etc/apache2/sites-enabled/conf.d/ckan.conf"
       notify: "apache_restart"
 
     - include_tasks: "tasks/postgresql.yml"
     - include_tasks: "tasks/solr.yml"
+    - include_tasks: "tasks/datapusher.yml"
 
     - name: "Update directory ownership"
       command: "chown -R www-data:staff {{ item }}"
