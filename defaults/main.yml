@@ -1,5 +1,5 @@
 ---
-ckan_branch: "ckan-2.8.0"
+ckan_branch: "ckan-2.8.1"
 ckan_path:   "/srv/sites/ckan"
 ckan_data:   "/srv/data/ckan"
 ckan_backup: "/srv/backups/ckan"
@@ -20,7 +20,7 @@ ckan_site_hostname: "{{ ansible_nodename }}"
 ckan_site_uri: "/"
 ckan_site_url: "http://{{ ckan_site_hostname }}{{ ckan_site_uri }}"
 
-solr_version: "6.2.1"
+solr_version: "7.4.0"
 solr_filename: "solr-{{ solr_version }}"
 solr_download_url: "http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/{{ solr_filename }}.tgz"
 
