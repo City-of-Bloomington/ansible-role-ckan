@@ -11,6 +11,11 @@
     virtualenv:   "{{ ckan_datapusher.path }}"
     requirements: "{{ ckan_datapusher.path }}/src/datapusher/requirements.txt"
 
+- name: "Install datapusher settings"
+  template:
+    src: "datapusher_settings.py"
+    dest: "{{ ckan_datapusher.path }}/etc/datapusher_settings.py"
+
 - name: "Create wsgi"
   template:
     src:  "datapusher.wsgi"

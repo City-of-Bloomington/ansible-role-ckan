@@ -50,6 +50,7 @@
         - "{{ ckan_path   }}/public"
         - "{{ ckan_data   }}"
         - "{{ ckan_backup }}"
+        - "{{ ckan_datapusher.path }}/etc"
         - "{{ ckan_datapusher.path }}/src"
         - "{{ ckan_datapusher.path }}/public"
 
@@ -131,6 +132,7 @@
         - "{{ ckan_path   }}"
         - "{{ ckan_data   }}"
         - "{{ ckan_backup }}"
+        - "{{ ckan_datapusher.path }}"
 
     - name: "Update directory permission"
       command: "chmod -R u=rwX,g=rwX,o=rX {{ item }}"
@@ -140,4 +142,5 @@
         - "{{ ckan_path   }}"
         - "{{ ckan_data   }}"
         - "{{ ckan_backup }}"
+        - "{{ ckan_datapusher.path }}"
 ...
