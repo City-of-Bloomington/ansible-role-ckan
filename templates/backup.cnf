@@ -1,0 +1,2 @@
+{{ ckan_db.ckan.host }}:5432:{{ ckan_db.ckan.name }}:{{ ckan_db.ckan.user }}:{{ ckan_db.ckan.pass|replace(":", "\\:") }}
+{{ ckan_db.ckan.host }}:5432:{{ ckan_db.datastore.name }}:{{ ckan_db.ckan.user }}:{{ ckan_db.ckan.pass|replace(":", "\\:") }}

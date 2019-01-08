@@ -23,14 +23,15 @@
 
     - name: "Install python dependencies"
       apt:
-        name: "{{ item }}"
+        name: "{{ packages }}"
         state: "present"
-      with_items:
-        - "python-pip"
-        - "python-virtualenv"
-        - "python-lxml"
-        - "libapache2-mod-wsgi"
-        - "redis-server"
+      vars:
+        packages:
+          - "python-pip"
+          - "python-virtualenv"
+          - "python-lxml"
+          - "libapache2-mod-wsgi"
+          - "redis-server"
       when: "ansible_python_version is version_compare('3', '<')"
 
     - name: "Enable apache wsgi"
@@ -57,14 +58,30 @@
     - name: "Install CKAN"
       pip:
         editable: "yes"
-        name: "{{ item }}"
+        name: "git+https://github.com/ckan/ckan.git@{{ ckan_branch }}#egg=ckan"
         virtualenv: "{{ ckan_path }}"
         virtualenv_site_packages: "no"
-      with_items:
-        - "git+https://github.com/ckan/ckan.git@{{ ckan_branch }}#egg=ckan"
-        - "git+https://github.com/ckan/ckanext-harvest.git#egg=ckanext-harvest"
-        - "git+https://github.com/City-of-Bloomington/ckanext-datajson.git#egg=ckanext-datajson"
-        - "git+https://github.com/City-of-Bloomington/ckanext-cob.git#egg=ckanext-cob"
+
+    - name: "Install Harvester"
+      pip:
+        editable: "yes"
+        name: "git+https://github.com/ckan/ckanext-harvest.git#egg=ckanext-harvest"
+        virtualenv: "{{ ckan_path }}"
+        virtualenv_site_packages: "no"
+
+    - name: "Install Datajson"
+      pip:
+        editable: "yes"
+        name: "git+https://github.com/City-of-Bloomington/ckanext-datajson.git#egg=ckanext-datajson"
+        virtualenv: "{{ ckan_path }}"
+        virtualenv_site_packages: "no"
+
+    - name: "Install COB Theme"
+      pip:
+        editable: "yes"
+        name: "git+https://github.com/City-of-Bloomington/ckanext-cob.git#egg=ckanext-cob"
+        virtualenv: "{{ ckan_path }}"
+        virtualenv_site_packages: "no"
 
     - name: "Install CKAN requirements"
       pip:
@@ -143,4 +160,16 @@
         - "{{ ckan_data   }}"
         - "{{ ckan_backup }}"
         - "{{ ckan_datapusher.path }}"
+
+    - name: "Install Backup CRON"
+      template:
+        src: "backup.sh"
+        dest: "/etc/cron.daily/backup.d/ckan"
+        mode: "0755"
+
+    - name: "Configure backup credentials"
+      template:
+        src: "backup.cnf"
+        dest: "/etc/cron.daily/backup.d/ckan.cnf"
+        mode: "0600"
 ...
