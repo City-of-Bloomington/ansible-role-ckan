@@ -1,5 +1,5 @@
 ---
-ckan_branch: "ckan-2.8.1"
+ckan_branch: "ckan-2.8.3"
 ckan_path:   "/srv/sites/ckan"
 ckan_data:   "/srv/data/ckan"
 ckan_backup: "/srv/backups/ckan"
@@ -25,6 +25,6 @@ solr_filename: "solr-{{ solr_version }}"
 solr_download_url: "http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/{{ solr_filename }}.tgz"
 
 ckan_datapusher:
-  version: "0.0.14"
+  version: "0.0.15"
   path: "/srv/sites/datapusher"
 ...
