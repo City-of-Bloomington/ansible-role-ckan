@@ -31,6 +31,9 @@
           - "python-virtualenv"
           - "python-lxml"
           - "libapache2-mod-wsgi"
+          - 'libldap2-dev'
+          - 'libsasl2-dev'
+          - 'libssl-dev'
           - "redis-server"
       when: "ansible_python_version is version_compare('3', '<')"
 
@@ -83,6 +86,13 @@
         virtualenv: "{{ ckan_path }}"
         virtualenv_site_packages: "no"
 
+    - name: "Install LDAP"
+      pip:
+        editable: "yes"
+        name: "git+https://github.com/NaturalHistoryMuseum/ckanext-ldap.git@ckan-upgrade-2.8.0a#egg=ckanext-ldap"
+        virtualenv: "{{ ckan_path }}"
+        virtualenv_site_packages: "no"
+
     - name: "Install CKAN requirements"
       pip:
         virtualenv:   "{{ ckan_path }}"
@@ -112,12 +122,23 @@
         - { key: "ckan.storage_path",             value: "{{ ckan_data     }}" }
         - { key: "ckan.cors.origin_allow_all",    value: "true"                }
         - { key: "ckan.auth.create_user_via_web", value: "false"               }
-        - { key: "ckan.plugins",             value: "stats text_view image_view recline_view datastore datapusher harvest datajson cob" }
+        - { key: "ckan.plugins",             value: "stats text_view image_view recline_view datastore datapusher harvest datajson cob ldap" }
         - { key: "ckan.datapusher.formats",  value: "csv xls xlsx tsv application/csv application/vnd.ms-excel application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
         - { key: "ckan.datapusher.url",      value:  "http://localhost:8800" }
         - { key: "solr_url",                 value:  "http://localhost:8983/solr/ckan" }
         - { key: "ckan.redis.url",           value: "redis://localhost:6379/0" }
         - { key: "ckan.harvest.mq.type",     value: "redis" }
+        - { key: 'ckanext.ldap.uri',               value: '{{ ckan_ldap.uri             }}' }
+        - { key: 'ckanext.ldap.base_dn',           value: '{{ ckan_ldap.base_dn         }}' }
+        - { key: 'ckanext.ldap.search.filter',     value: '{{ ckan_ldap.search_filter   }}' }
+        - { key: 'ckanext.ldap.username',          value: '{{ ckan_ldap.username        }}' }
+        - { key: 'ckanext.ldap.email',             value: '{{ ckan_ldap.email           }}' }
+        - { key: 'ckanext.ldap.auth.dn',           value: '{{ ckan_ldap.auth_dn         }}' }
+        - { key: 'ckanext.ldap.auth.password',     value: '{{ ckan_ldap.auth_password   }}' }
+        - { key: 'ckanext.ldap.fullname',          value: '{{ ckan_ldap.fullname        }}' }
+        - { key: 'ckanext.ldap.organization.id',   value: '{{ ckan_ldap.organization_id }}' }
+        - { key: 'ckanext.ldap.organization.role', value: '{{ ckan_ldap.role            }}' }
+        - { key: 'ckanext.ldap.migrate',           value: 'true' }
 
     - name: "Link to who.ini"
       file:
