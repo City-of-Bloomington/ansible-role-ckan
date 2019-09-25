@@ -139,6 +139,9 @@
         - { key: 'ckanext.ldap.organization.id',   value: '{{ ckan_ldap.organization_id }}' }
         - { key: 'ckanext.ldap.organization.role', value: '{{ ckan_ldap.role            }}' }
         - { key: 'ckanext.ldap.migrate',           value: 'true' }
+        - { key: 'smtp.server',    value: '{{ ckan_smtp.server    }}' }
+        - { key: 'smtp.starttls',  value: '{{ ckan_smtp.starttls  }}' }
+        - { key: 'smtp.mail_from', value: '{{ ckan_smtp.mail_from }}' }
 
     - name: "Link to who.ini"
       file:

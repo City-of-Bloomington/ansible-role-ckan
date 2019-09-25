@@ -28,6 +28,11 @@ ckan_ldap:
   organization_id: ''
   role:            ''
 
+ckan_smtp:
+  server:    ''
+  starttls:  ''
+  mail_from: ''
+
 ckan_site_hostname: "{{ ansible_nodename }}"
 ckan_site_uri: "/"
 ckan_site_url: "http://{{ ckan_site_hostname }}{{ ckan_site_uri }}"
